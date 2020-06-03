@@ -117,6 +117,7 @@ namespace MountainMeadowEngine.TexturePacker {
         private async Task<string[]> ReadDataFileLines(string dataFile)
         {
             var folder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            dataFile = dataFile.Replace("/", "\\");
 
             var file = await folder.GetFileAsync(dataFile).AsTask().ConfigureAwait(false);
             var fileContents = await Windows.Storage.FileIO.ReadLinesAsync(file).AsTask().ConfigureAwait(false);
