@@ -74,7 +74,7 @@ namespace MountainMeadowEngine {
       inputManager.SetHUDCam(HUDCam);
     }
 
-    protected override void Update(GameTime gameTime) {
+    protected override void Draw(GameTime gameTime) {
       timeSinceLastUpdate += gameTime.ElapsedGameTime.TotalSeconds;
 
       while (timeSinceLastUpdate >= UPDATE_STEP) {
