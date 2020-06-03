@@ -1,0 +1,208 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace MountainMeadowEngine.Collision {
+
+  public class Rectangle3D {
+    public enum RectangleTypes { REGULAR, XYSLOPE_UP_LEFT, XYSLOPE_UP_RIGHT, XYSLOPE_DOWN_LEFT, XYSLOPE_DOWN_RIGHT, ZSLOPEX_UP, ZSLOPEX_DOWN, ZSLOPEY_UP, ZSLOPEY_DOWN }
+
+    public RectangleTypes type = RectangleTypes.REGULAR;
+    public float X;
+    public float Y;
+    public float Z;
+    public float Width;
+    public float Length;
+    public float Height;
+    public float Left { get { return X; } }
+    public float Right { get { return X + Length; } }
+    public float Front { get { return Y + Width; } }
+    public float Back { get { return Y; } }
+    public float Top { get { return Z - Height; } }
+    public float Bottom { get { return Z; } }
+    public bool IsEmpty { get { return (Width == 0 && Height == 0 && Length == 0); } }
+    public Vector3 Location { get { return new Vector3(X, Y, Z); } }
+
+    //public Texture2D debugCollisionBottom, debugCollisionFull;
+    //public List<Vector2> slopeLine = new List<Vector2>();
+
+    protected Polygon polygon = new Polygon();
+
+    public Vector3 Center {
+      get {
+        return new Vector3(X + (Length / 2), Y + (Width / 2), Z - (Height / 2));
+      }
+    }
+
+    public Rectangle3D(float x, float y, float z, float length, float width, float height, RectangleTypes rectangleType = RectangleTypes.REGULAR) {
+      X = x;
+      Y = y;
+      Z = z;
+      Length = length;
+      Width = width;
+      Height = height;
+
+      switch (rectangleType) {
+        case RectangleTypes.REGULAR:
+        case RectangleTypes.ZSLOPEX_DOWN:
+        case RectangleTypes.ZSLOPEX_UP:
+        case RectangleTypes.ZSLOPEY_DOWN:
+        case RectangleTypes.ZSLOPEY_UP:
+          polygon.Points.Add(new Vector(x, y));
+          polygon.Points.Add(new Vector(x, y + width));
+          polygon.Points.Add(new Vector(x + length, y));
+          polygon.Points.Add(new Vector(x + length, y + width));
+          break;
+        case RectangleTypes.XYSLOPE_DOWN_LEFT:
+          polygon.Points.Add(new Vector(x, y));
+          polygon.Points.Add(new Vector(x, y + width));
+          polygon.Points.Add(new Vector(x + length, y + width));
+          break;
+        case RectangleTypes.XYSLOPE_DOWN_RIGHT:
+          polygon.Points.Add(new Vector(x, y));
+          polygon.Points.Add(new Vector(x + length, y));
+          polygon.Points.Add(new Vector(x + length, y + width));
+          break;
+        case RectangleTypes.XYSLOPE_UP_LEFT:
+          polygon.Points.Add(new Vector(x, y));
+          polygon.Points.Add(new Vector(x, y + width));
+          polygon.Points.Add(new Vector(x + length, y));
+          break;
+        case RectangleTypes.XYSLOPE_UP_RIGHT:
+          polygon.Points.Add(new Vector(x, y + width));
+          polygon.Points.Add(new Vector(x + length, y));
+          polygon.Points.Add(new Vector(x + length, y + width));
+          break;
+      }
+
+      polygon.BuildEdges();
+      type = rectangleType;
+    }
+
+
+
+    public bool Contains(Rectangle3D value) {
+      return (this.Left <= value.Left && this.Right >= value.Right &&
+              this.Back <= value.Back && this.Front >= value.Front);
+    }
+
+    public bool Contains(Vector3 coords) {
+      return Contains(coords.X, coords.Y, coords.Z);
+    }
+
+    public bool Contains(List<Vector3> coords) {
+      List<Vector3> hits = new List<Vector3>();
+      return Contains(coords, out hits);
+    }
+
+    public bool Contains(List<Vector3> coords, out List<Vector3> hits) {
+      hits = new List<Vector3>();
+
+      for (int i = 0; i < coords.Count; i++) {
+        if (Contains(coords[i]))
+          hits.Add(coords[i]);
+      }
+      return (hits.Count > 0);
+    }
+
+    public bool Contains(List<Tuple<int, Vector3>> coords, out List<Tuple<int, Vector3>> hits) {
+      hits = new List<Tuple<int, Vector3>>();
+
+      for (int i = 0; i < coords.Count; i++) {
+        if (Contains(coords[i].Item2))
+          hits.Add(Tuple.Create(coords[i].Item1, coords[i].Item2));
+      }
+      return (hits.Count > 0);
+    }
+
+    public bool Contains(float x, float y, float z) {
+      bool result = false;
+
+      result = (x >= Left && x <= Right && y >= Back && y <= Front && z >= Top && z <= Bottom);
+      if (!result || type == RectangleTypes.REGULAR) {
+        return result;
+      }
+
+      float absPos, ratio;
+      if (type == RectangleTypes.ZSLOPEX_DOWN || type == RectangleTypes.ZSLOPEX_UP) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.ZSLOPEX_DOWN) ? (absPos / Length) : 1 - (absPos / Length);
+        return (z >= Top + (ratio * Height));
+      }
+      if (type == RectangleTypes.ZSLOPEY_DOWN || type == RectangleTypes.ZSLOPEY_UP) {
+        absPos = y - Back;
+        ratio = (type == RectangleTypes.ZSLOPEY_DOWN) ? (absPos / Width) : 1 - (absPos / Width);
+        return (z >= Top + (ratio * Height));
+      }
+      if (type == RectangleTypes.XYSLOPE_DOWN_LEFT || type == RectangleTypes.XYSLOPE_UP_RIGHT) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.XYSLOPE_DOWN_LEFT) ? (absPos / Length) : 1 - (absPos / Length);
+        return (y >= Back + (ratio * Width));
+      }
+      if (type == RectangleTypes.XYSLOPE_UP_LEFT || type == RectangleTypes.XYSLOPE_DOWN_RIGHT) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.XYSLOPE_DOWN_LEFT) ? (absPos / Length) : 1 - (absPos / Length);
+        return (y <= Back + (ratio * Width));
+      }
+
+      return false;
+    }
+
+    public bool RegularOverlaps(Rectangle3D value) {
+      return (Left <= value.Right && Right >= value.Left &&
+              Back <= value.Front && Front >= value.Back &&
+              Top <= value.Bottom && Bottom >= value.Bottom);
+    }
+
+    public bool HasXYSlope() {
+      return (type == RectangleTypes.XYSLOPE_DOWN_LEFT || type == RectangleTypes.XYSLOPE_DOWN_RIGHT ||
+              type == RectangleTypes.XYSLOPE_UP_LEFT || type == RectangleTypes.XYSLOPE_UP_RIGHT);
+    }
+
+    public bool HasZSlope() {
+      return (type == RectangleTypes.ZSLOPEX_UP || type == RectangleTypes.ZSLOPEY_UP ||
+              type == RectangleTypes.ZSLOPEX_DOWN || type == RectangleTypes.ZSLOPEY_DOWN);
+    }
+
+    public bool HasAnySlope() {
+      return (HasXYSlope() || HasZSlope());
+    }
+
+    public bool IsRegular() {
+      return (!HasAnySlope());
+    }
+
+    public void Offset(float offsetX, float offsetY, float offsetZ) {
+      X += offsetX;
+      Y += offsetY;
+      Z += offsetZ;
+    }
+
+    public void Offset(Vector3 amount) {
+      Offset(amount.X, amount.Y, amount.Z);
+    }
+
+    public override string ToString() {
+      return "{\"X\":" + X + ", \"Y\":" + Y + ", \"Z\":" + Z + ", \"Length\":" + Length + ", \"Width\":" + Width + ", \"Height\":" + Height + ", \"Type\":" + type.ToString() + "\"}";
+    }
+
+    //public static Rectangle3D Union(Rectangle3D value1, Rectangle3D value2) {
+    //  Rectangle3D result = new Rectangle3D();
+    //  result.X = (value1.X <= value2.X) ? value1.X : value2.X;
+    //  result.Length = (value1.Right <= value2.Right) ? value2.Right - result.X : value1.Right - result.X;
+
+    //  result.Y = (value1.Y <= value2.Y) ? value1.Y : value2.Y;
+    //  result.Width = (value1.Front <= value2.Front) ? value2.Front - result.Y : value1.Front - result.Y;
+
+    //  result.Z = (value1.Z >= value2.Z) ? value1.Z : value2.Z;
+    //  result.Height = (value1.Top >= value2.Top) ? result.Z - value2.Top : result.Z - value1.Top;
+
+    //  return result;
+    //}
+
+
+
+
+  }
+}

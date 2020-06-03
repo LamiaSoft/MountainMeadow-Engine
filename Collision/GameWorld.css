@@ -1,0 +1,89 @@
+﻿using System;
+using System.Diagnostics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MountainMeadow.Components;
+using MountainMeadow.Managers;
+
+namespace MountainMeadow {
+  
+  public class GameWorld : Game {
+    protected GraphicsDeviceManager graphics;
+
+    public enum Orientations { LANDSCAPE, PORTRAIT };
+
+    public static double UPDATE_STEP = 1f / 30;
+
+    public static Vector2 GAME_RESOLUTION = new Vector2(800, 640);
+    public static Vector2 ALT_GAME_RESOLUTION = new Vector2(800, 640);
+
+
+    double timeSinceLastUpdate;
+
+    EventManager eventManager;
+    ContentManager contentManager;
+    SceneManager sceneManager;
+    InputManager inputManager;
+    RenderingManager renderingManager;
+
+    public GameWorld() {
+      graphics = new GraphicsDeviceManager(this);
+      eventManager = new EventManager();
+      contentManager = new ContentManager(this, eventManager);
+      sceneManager = new SceneManager(eventManager);
+      inputManager = new InputManager(eventManager);
+      renderingManager = new RenderingManager(eventManager);
+
+      IsFixedTimeStep = true;
+      graphics.SynchronizeWithVerticalRetrace = true;
+      graphics.IsFullScreen = false;
+
+      IsMouseVisible = true;
+      Window.AllowUserResizing = true;
+    }
+
+    protected override void Initialize() {
+      
+
+
+      ViewportManager.Update(graphics);
+    }
+
+    protected void AddScene(Type sceneType) {
+      if (sceneType.IsSubclassOf(typeof(Scene))) {
+        sceneManager.AddScene((Scene)Activator.CreateInstance(sceneType, sceneManager));
+      }
+    }
+
+    protected override void Update(GameTime gameTime) {
+      timeSinceLastUpdate += gameTime.ElapsedGameTime.TotalSeconds;
+
+      while (timeSinceLastUpdate >= UPDATE_STEP) {
+        ViewportManager.Update(graphics);
+        inputManager.Update(gameTime);
+        contentManager.Update(gameTime);
+        sceneManager.Update(gameTime);
+        renderingManager.Update(gameTime);
+
+        eventManager.ProcessEvents(contentManager, sceneManager, inputManager, renderingManager);
+
+
+        // Update stuff
+
+        timeSinceLastUpdate -= UPDATE_STEP;
+      }
+
+
+
+      // Draw stuff
+
+
+     //Console.WriteLine("TIME: " + gameTime.ElapsedGameTime.TotalSeconds);
+
+
+    }
+
+    protected override void Draw(GameTime gameTime) { }
+  
+  }
+}

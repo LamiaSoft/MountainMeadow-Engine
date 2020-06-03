@@ -1,0 +1,66 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using MountainMeadowEngine.Tools;
+
+namespace MountainMeadowEngine.Components {
+  public class SpriteCollisionRegister : GameObjectComponent {
+   
+    List<CollisionArea> _collisionAreas;
+
+    public SpriteCollisionRegister(GameObject context) : base(context) { }
+
+    public override void DrawUpdate(GameTime gameTime) { }
+
+    public override void Initialize() { }
+
+    public bool GetObjectMinMaxSides(string name, out Vector3 minSides, out Vector3 maxSides) {
+      minSides = Vector3.Zero;
+      maxSides = Vector3.Zero;
+
+      if (name == null)
+        return false;
+      
+      _collisionAreas = context.GetComponents<CollisionArea>();
+      if (context.GetComponents<DirectionalCollisionArea>().Count > 0)
+        _collisionAreas.AddRange(context.GetComponents<DirectionalCollisionArea>()[0].GetCollisionAreas());
+      
+      float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0, z = 0;
+      bool found = false;
+
+      for (int c = 0; c < _collisionAreas.Count; c++) {
+        if (_collisionAreas[c].GetName() == name) {
+          float x = context.GetPosition().X + _collisionAreas[c].GetOffset().X;
+          float y = context.GetPosition().Y + _collisionAreas[c].GetOffset().Y;
+          z = context.GetPosition().Z + _collisionAreas[c].GetOffset().Z - _collisionAreas[c].GetHeight();
+
+          if (!found) {
+            minX = x;
+            minY = y;
+            minZ = z;
+            maxZ = z + _collisionAreas[c].GetHeight();
+          } else {
+            minX = (x < minX) ? x : minX;
+            minY = (y < minY) ? y : minY;
+            minY = (y < minY) ? y : minY;
+            minZ = (z < minZ) ? z : minZ;
+            maxZ = (z + _collisionAreas[c].GetHeight() > maxZ) ? z + _collisionAreas[c].GetHeight() : maxZ;
+          }
+          maxX = (x + _collisionAreas[c].GetLength() > maxX) ? x + _collisionAreas[c].GetLength() : maxX;
+          maxY = (y + _collisionAreas[c].GetWidth() > maxY) ? y + _collisionAreas[c].GetWidth() : maxY;
+
+          found = true;
+        }
+      }
+
+      if (found) {
+        minSides = new Vector3(minX, minY, maxZ);
+        maxSides = new Vector3(maxX, maxY, minZ);
+        return true;
+      }
+      return false;
+    }
+
+    public override void Update(GameTime gameTime) { }
+  }
+}

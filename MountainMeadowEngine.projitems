@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>6efba8a9-a407-4029-bdd0-651d22a87386</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>MountainMeadowEngine</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameScene.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameWorld.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SpatialManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Sequence.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\IsObstructed.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\BehaviorTreeNode.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Selector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\WalkTo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Jump.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Inverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Succeeder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\Repeater.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\UntilFail.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\ObstructionIsJumpable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Behavior\WalkToObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\PrimitivesHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\IMovable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\Point2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\Size2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\IRotatable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\IEquatableByRef.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\RectangleF.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\Matrix2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GameMath\BresenhamLine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tools\StopWatch.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Tools\Debug.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\SceneManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\InputManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\GameContentManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\RenderManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\PhysicsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TexturePacker\SpriteSheet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TexturePacker\SpriteFrame.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TexturePacker\SpriteSheetLoader.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TexturePacker\SpriteRender.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Cameras\Camera2D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Cameras\GameCamera.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\CollisionArea.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Background.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\LiftingEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\InputComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\BehaviorTree.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Collision.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\AnimatedSprite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Liftable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\ParallaxBackground.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\ObjectSprite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\IHasRect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\GameCameraComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Register.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\SpriteCollisionRegister.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\RegularBackground.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\ActionEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\FixedBackground.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Animation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\Sprite.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\MovableEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\FixedPositionObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\GameObjectComponent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\GameObject.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Components\DirectionalCollisionArea.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportAdapters\WindowViewportAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportAdapters\BoxingViewportAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportAdapters\ScalingViewportAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportAdapters\ViewportAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewportAdapters\DefaultViewportAdapter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\ObjectEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\ViewportEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\TryEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\CollisionEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\UpdateEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\PositionEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\InputEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\ActionEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\SceneEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\HUDEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\EventManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Events\AnimationEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collision\Rectangle3D.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collision\Polygon.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collision\CircleCollision.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collision\Vector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IEventListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ObjectAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\GameEvent.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IScene.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Components\ParallaxBackground %28copy%29.css" />
+    <None Include="$(MSBuildThisFileDirectory)Components\SpriteCollisionRegister %28copy%29.css" />
+    <None Include="$(MSBuildThisFileDirectory)Collision\Rectangle3D %28copy3%29.css" />
+    <None Include="$(MSBuildThisFileDirectory)Collision\Rectangle3D %28copy%292.css" />
+    <None Include="$(MSBuildThisFileDirectory)Collision\GameWorld.css" />
+  </ItemGroup>
+ </Project>

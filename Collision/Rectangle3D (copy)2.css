@@ -1,0 +1,286 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace MountainMeadowEngine.Collision {
+
+  public class Rectangle3D {
+    public enum RectangleTypes { REGULAR, XYSLOPE_UP_LEFT, XYSLOPE_UP_RIGHT, XYSLOPE_DOWN_LEFT, XYSLOPE_DOWN_RIGHT, ZSLOPEX_UP, ZSLOPEX_DOWN, ZSLOPEY_UP, ZSLOPEY_DOWN }
+
+    public Dictionary<RectangleTypes, List<int>> contactPoints = new Dictionary<RectangleTypes, List<int>>();
+
+    public RectangleTypes type = RectangleTypes.REGULAR;
+    public float X;
+    public float Y;
+    public float Z;
+    public float Width;
+    public float Length;
+    public float Height;
+    public float Left { get { return X; } }
+    public float Right { get { return X + Length; } }
+    public float Front { get { return Y + Width; } }
+    public float Back { get { return Y; } }
+    public float Top { get { return Z - Height; } }
+    public float Bottom { get { return Z; } }
+    public bool IsEmpty { get { return (Width == 0 && Height == 0 && Length == 0); } }
+    public Vector3 Location { get { return new Vector3(X, Y, Z); } }
+
+    public Texture2D debugCollisionBottom, debugCollisionFull;
+    public List<Vector2> slopeLine = new List<Vector2>();
+
+
+    public Vector3 Center {
+      get {
+        return new Vector3(X + (Length / 2), Y + (Width / 2), Z - (Height / 2));
+      }
+    }
+
+    public Rectangle3D() {
+      SetContactPoints();
+    }
+
+    public Rectangle3D(float x, float y, float z, float length, float width, float height, RectangleTypes rectangleType = RectangleTypes.REGULAR) {
+      X = x;
+      Y = y;
+      Z = z;
+      Length = length;
+      Width = width;
+      Height = height;
+      type = rectangleType;
+      SetContactPoints();
+    }
+
+    private void SetContactPoints() {
+      contactPoints.Add(RectangleTypes.REGULAR, new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7 });
+      contactPoints.Add(RectangleTypes.ZSLOPEX_UP, new List<int>() { 1, 2, 4, 5, 6, 7 });
+      contactPoints.Add(RectangleTypes.ZSLOPEX_DOWN, new List<int>() { 0, 3, 4, 5, 6, 7 });
+      contactPoints.Add(RectangleTypes.ZSLOPEY_UP, new List<int>() { 2, 3, 4, 5, 6, 7 });
+      contactPoints.Add(RectangleTypes.ZSLOPEY_DOWN, new List<int>() { 0, 1, 4, 5, 6, 7 });
+      contactPoints.Add(RectangleTypes.XYSLOPE_DOWN_LEFT, new List<int>() { 0, 2, 3, 4, 6, 7 });
+      contactPoints.Add(RectangleTypes.XYSLOPE_DOWN_RIGHT, new List<int>() { 0, 1, 2, 4, 5, 6 });
+      contactPoints.Add(RectangleTypes.XYSLOPE_UP_LEFT, new List<int>() { 0, 1, 3, 4, 5, 7 });
+      contactPoints.Add(RectangleTypes.XYSLOPE_UP_RIGHT, new List<int>() { 1, 2, 3, 5, 6, 7 });
+    }
+
+    public bool Contains(Rectangle3D value) {
+      return (this.Left <= value.Left && this.Right >= value.Right &&
+              this.Back <= value.Back && this.Front >= value.Front);
+    }
+
+    public bool ContainsHorizontally(Rectangle3D value) {
+      return (this.Left <= value.Left && this.Right >= value.Right);
+    }
+
+    public bool ContainsVertically(Rectangle3D value) {
+      return (this.Back <= value.Back && this.Front >= value.Front);
+    }
+
+    public bool Contains(Vector3 coords) {
+      return Contains(coords.X, coords.Y, coords.Z);
+    }
+
+    public bool Contains(List<Vector3> coords) {
+      List<Vector3> hits = new List<Vector3>();
+      return Contains(coords, out hits);
+    }
+
+    public bool Contains(List<Vector3> coords, out List<Vector3> hits) {
+      hits = new List<Vector3>();
+
+      for (int i = 0; i < coords.Count; i++) {
+        if (Contains(coords[i]))
+          hits.Add(coords[i]);
+      }
+      return (hits.Count > 0);
+    }
+
+    public bool Contains(List<Tuple<int, Vector3>> coords, out List<Tuple<int, Vector3>> hits) {
+      hits = new List<Tuple<int, Vector3>>();
+
+      for (int i = 0; i < coords.Count; i++) {
+        if (Contains(coords[i].Item2))
+          hits.Add(Tuple.Create(coords[i].Item1, coords[i].Item2));
+      }
+      return (hits.Count > 0);
+    }
+
+    public bool Contains(float x, float y, float z) {
+      bool result = false;
+
+      result = (x >= Left && x <= Right && y >= Back && y <= Front && z >= Top && z <= Bottom);
+      if (!result || type == RectangleTypes.REGULAR) {
+        return result;
+      }
+
+      float absPos, ratio;
+      if (type == RectangleTypes.ZSLOPEX_DOWN || type == RectangleTypes.ZSLOPEX_UP) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.ZSLOPEX_DOWN) ? (absPos / Length) : 1 - (absPos / Length);
+        return (z >= Top + (ratio * Height));
+      }
+      if (type == RectangleTypes.ZSLOPEY_DOWN || type == RectangleTypes.ZSLOPEY_UP) {
+        absPos = y - Back;
+        ratio = (type == RectangleTypes.ZSLOPEY_DOWN) ? (absPos / Width) : 1 - (absPos / Width);
+        return (z >= Top + (ratio * Height));
+      }
+      if (type == RectangleTypes.XYSLOPE_DOWN_LEFT || type == RectangleTypes.XYSLOPE_UP_RIGHT) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.XYSLOPE_DOWN_LEFT) ? (absPos / Length) : 1 - (absPos / Length);
+        return (y >= Back + (ratio * Width));
+      }
+      if (type == RectangleTypes.XYSLOPE_UP_LEFT || type == RectangleTypes.XYSLOPE_DOWN_RIGHT) {
+        absPos = x - Left;
+        ratio = (type == RectangleTypes.XYSLOPE_DOWN_LEFT) ? (absPos / Length) : 1 - (absPos / Length);
+        return (y <= Back + (ratio * Width));
+      }
+
+      return false;
+    }
+
+    public bool Intersects(Rectangle3D value, out List<Tuple<int, Vector3>> contactPoints1, out List<Tuple<int, Vector3>> contactPoints2) {
+      contactPoints1 = new List<Tuple<int, Vector3>>();
+      contactPoints2 = new List<Tuple<int, Vector3>>();
+      return Intersects(this, value, out contactPoints1, out contactPoints2);
+    }
+
+    private static List<Tuple<int, Vector3>> GetCoordinates(Rectangle3D value) {
+      List<Tuple<int, Vector3>> coords = new List<Tuple<int, Vector3>>();
+
+      for (int i = 0; i < value.contactPoints[value.type].Count; i++) {
+        float zValue = (value.contactPoints[value.type][i] < 4) ? value.Top : value.Bottom;
+
+        switch (value.contactPoints[value.type][i]) {
+          case 0:
+          case 4:
+            coords.Add(Tuple.Create(value.contactPoints[value.type][i], new Vector3(value.Left, value.Back, zValue)));
+          break;
+          case 1:
+          case 5:
+            coords.Add(Tuple.Create(value.contactPoints[value.type][i], new Vector3(value.Right, value.Back, zValue)));
+            break;
+          case 2:
+          case 6:
+            coords.Add(Tuple.Create(value.contactPoints[value.type][i], new Vector3(value.Right, value.Front, zValue)));
+            break;
+          case 3:
+          case 7:
+            coords.Add(Tuple.Create(value.contactPoints[value.type][i], new Vector3(value.Left, value.Front, zValue)));
+            break;
+        }
+      }
+      return coords;
+    }
+
+    private static bool BlockIntersects(Rectangle3D value1, Rectangle3D value2, bool doubleCheck = true) {
+      if (value1.type == RectangleTypes.XYSLOPE_DOWN_RIGHT) {
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_UP_LEFT) && !value1.ContainsHorizontally(value2) && value1.Left <= value2.Left)
+          return true;
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_UP_RIGHT) && !value1.ContainsVertically(value2) && value1.Front >= value2.Front)
+          return true;
+      }
+      if (value1.type == RectangleTypes.XYSLOPE_DOWN_LEFT) {
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_UP_RIGHT) && !value1.ContainsHorizontally(value2) && value1.Right >= value2.Right)
+          return true;
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_UP_LEFT) && !value1.ContainsVertically(value2) && value1.Back <= value2.Back)
+          return true;
+      }
+      if (value1.type == RectangleTypes.XYSLOPE_UP_RIGHT) {
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_DOWN_LEFT) && !value1.ContainsHorizontally(value2) && value1.Left <= value2.Left)
+          return true;
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_DOWN_RIGHT) && !value1.ContainsVertically(value2) && value1.Back <= value2.Back)
+          return true;
+      }
+      if (value1.type == RectangleTypes.XYSLOPE_UP_LEFT) {
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_DOWN_RIGHT) && !value1.ContainsHorizontally(value2) && value1.Right >= value2.Right)
+            return true;
+        if ((value2.type == RectangleTypes.REGULAR || value2.type == RectangleTypes.XYSLOPE_DOWN_LEFT) && !value1.ContainsVertically(value2) && value1.Front >= value2.Front)
+          return true;
+      }
+
+      if (doubleCheck)
+        return BlockIntersects(value2, value1, false);
+
+      return false;
+    }
+
+    public bool RegularOverlaps(Rectangle3D value) {
+      return (Left <= value.Right && Right >= value.Left &&
+              Back <= value.Front && Front >= value.Back &&
+              Top <= value.Bottom && Bottom >= value.Bottom);
+    }
+
+    public static bool Intersects(Rectangle3D value1, Rectangle3D value2, out List<Tuple<int, Vector3>> contactPoints1, out List<Tuple<int, Vector3>> contactPoints2) {
+      contactPoints1 = new List<Tuple<int, Vector3>>();
+      contactPoints2 = new List<Tuple<int, Vector3>>();
+
+      if (!value1.RegularOverlaps(value2))
+        return false;
+
+      List<Tuple<int, Vector3>> coords1 = GetCoordinates(value1);
+      List<Tuple<int, Vector3>> coords2 = GetCoordinates(value2);
+
+      value2.Contains(coords1, out contactPoints1);
+      value1.Contains(coords2, out contactPoints2);
+
+      if (contactPoints1.Count > 0 || contactPoints2.Count > 0) {
+        return true;
+      }
+
+      if (value1.HasXYSlope() || value2.HasXYSlope())
+        return BlockIntersects(value1, value2);
+
+      return false;
+    }
+
+    public bool HasXYSlope() {
+      return (type == RectangleTypes.XYSLOPE_DOWN_LEFT || type == RectangleTypes.XYSLOPE_DOWN_RIGHT ||
+              type == RectangleTypes.XYSLOPE_UP_LEFT || type == RectangleTypes.XYSLOPE_UP_RIGHT);
+    }
+
+    public bool HasZSlope() {
+      return (type == RectangleTypes.ZSLOPEX_UP || type == RectangleTypes.ZSLOPEY_UP ||
+              type == RectangleTypes.ZSLOPEX_DOWN || type == RectangleTypes.ZSLOPEY_DOWN);
+    }
+
+    public bool HasAnySlope() {
+      return (HasXYSlope() || HasZSlope());
+    }
+
+    public bool IsRegular() {
+      return (!HasAnySlope());
+    }
+
+    public void Offset(float offsetX, float offsetY, float offsetZ) {
+      X += offsetX;
+      Y += offsetY;
+      Z += offsetZ;
+    }
+
+    public void Offset(Vector3 amount) {
+      Offset(amount.X, amount.Y, amount.Z);
+    }
+
+    public override string ToString() {
+      return "{\"X\":" + X + ", \"Y\":" + Y + ", \"Z\":" + Z + ", \"Length\":" + Length + ", \"Width\":" + Width + ", \"Height\":" + Height + ", \"Type\":" + type.ToString() + "\"}";
+    }
+
+    public static Rectangle3D Union(Rectangle3D value1, Rectangle3D value2) {
+      Rectangle3D result = new Rectangle3D();
+      result.X = (value1.X <= value2.X) ? value1.X : value2.X;
+      result.Length = (value1.Right <= value2.Right) ? value2.Right - result.X : value1.Right - result.X;
+
+      result.Y = (value1.Y <= value2.Y) ? value1.Y : value2.Y;
+      result.Width = (value1.Front <= value2.Front) ? value2.Front - result.Y : value1.Front - result.Y;
+
+      result.Z = (value1.Z >= value2.Z) ? value1.Z : value2.Z;
+      result.Height = (value1.Top >= value2.Top) ? result.Z - value2.Top : result.Z - value1.Top;
+
+      return result;
+    }
+
+
+
+
+  }
+}

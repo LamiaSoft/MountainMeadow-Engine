@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using MountainMeadowEngine.Cameras;
+using MountainMeadowEngine.Collision;
+using MountainMeadowEngine.Managers;
+using MountainMeadowEngine.Tools;
+using static MountainMeadowEngine.GameWorld;
+
+namespace MountainMeadowEngine.Components {
+  
+  public class ParallaxBackground : GameCameraComponent {
+    int layerDepth = 1;  // 0 = frontmost
+    float scrollSpeedRatio = 0.3f;
+    List<Background> textures = new List<Background>();
+    List<Background> drawables = new List<Background>();
+    Vector2 position;
+
+    public ParallaxBackground(GameCamera context) : base(context) {
+      position = context.GetPosition();
+    }
+
+    public ParallaxBackground AddTexture(string name, Vector2 position) {
+      textures.Add(new Background(name, position));
+      return this;
+    }
+
+    public int GetLayerDepth() {
+      return layerDepth;  
+    }
+
+    public override void DrawUpdate(GameTime gameTime) {
+      drawables.Clear();
+
+      Vector2 camScrolled = context.GetPosition() - context.GetPrevPosition();
+      position += (camScrolled * scrollSpeedRatio);
+
+      Rectangle3D viewport = new Rectangle3D(0, 0, 0, ViewportManager.GAME_VIEWPORT.X, ViewportManager.GAME_VIEWPORT.Y, 1);
+      viewport.SetPosition(position.X, position.Y, 0);
+      Debug.Output(ToString() + " CAM POS: ", context.GetPosition().ToString());
+      //Debug.Output(ToString() + " BG POS: ", position.ToString());
+
+      for (int i = 0; i < textures.Count; i++) {
+        
+        Rectangle3D bgLocation = textures[i].GetLocation();// new Rectangle3D(textures[i].GetLocation().X + offset.X, textures[i].GetLocation().Y + offset.Y, 0, textures[i].GetLocation().Length, textures[i].GetLocation().Width, 1);
+
+        if (withinBounds(viewport, textures[i].GetLocation())) {
+          Rectangle sourceRectangle = new Rectangle(0, 0, textures[i].width, textures[i].height);
+          Vector2 drawPosition = context.GetPosition();
+           
+          Debug.Output(ToString() + " VIEWPORT: " + viewport.ToString());
+          Debug.Output(ToString() + " BG POS: ", bgLocation.ToString());
+
+          //Debug.Output(ToString(), bgLocation.ToString());
+
+          if (viewport.Left > bgLocation.Left) {
+           
+            sourceRectangle.X = (int)Math.Floor(viewport.Left - bgLocation.Left);
+          } else {
+            Debug.Output(ToString(), "O JEE");
+            drawPosition.X = bgLocation.X;
+          }
+          if (viewport.Right <= bgLocation.Right) {
+            sourceRectangle.Width = (int)Math.Floor(viewport.Length);
+          } else {
+            sourceRectangle.Width = (int)Math.Floor(viewport.Right - sourceRectangle.X - (viewport.Right - bgLocation.Right));
+            Debug.Output(ToString(), "YO " + ((int)Math.Floor(viewport.Right - sourceRectangle.X - (viewport.Right - bgLocation.Right))).ToString());
+          }
+
+          if (viewport.Back > bgLocation.Back) {
+            sourceRectangle.Y = (int)Math.Floor(viewport.Back - bgLocation.Back);
+          } else {
+            drawPosition.Y = textures[i].GetLocation().Y;
+          }
+          if (viewport.Front <= bgLocation.Front) {
+            sourceRectangle.Height = (int)Math.Floor(viewport.Width);
+          } else {
+            sourceRectangle.Height = (int)Math.Floor(viewport.Front - sourceRectangle.Y - (viewport.Front - bgLocation.Front));
+          }
+          Debug.Output(ToString() + " SOURCE RECT: ", sourceRectangle.ToString());
+          Debug.Output(ToString() + " DRAW POS: ", drawPosition.ToString());
+          textures[i].SetSourceRectangle(sourceRectangle);
+          textures[i].SetCurrentDrawPosition(drawPosition);
+          drawables.Add(textures[i]);
+        }
+      }
+
+
+
+    }
+
+    public List<Background> GetCurrentTextures() {
+      return drawables;
+    }
+
+    bool withinBounds(Rectangle3D viewport, Rectangle3D background) {
+      return (viewport.Right >= background.Left && viewport.Left <= background.Right &&
+              viewport.Back <= background.Front && viewport.Front >= background.Back);
+
+    }
+
+    public override void Initialize() {
+      
+    }
+  }
+}
