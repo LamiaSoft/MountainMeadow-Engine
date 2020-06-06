@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MountainMeadowEngine.Events;
@@ -68,7 +68,7 @@ namespace MountainMeadowEngine.Components
       if (currentDirection == Direction.NONE) {
         Vector3 oldDirection = direction;
 
-        int absX = (int)Math.Abs(velocity.X), absY = (int)Math.Abs(velocity.X);
+        int absX = (int)Math.Abs(velocity.X), absY = (int)Math.Abs(velocity.Y);
         if (absX + absY > 0) {
           if (absX >= absY) {
             direction.X = (velocity.X > 0) ? 1 : -1;

@@ -10,29 +10,33 @@ using MountainMeadowEngine.Interfaces;
 
 namespace MountainMeadowEngine.Managers {
 
-  public class InputManager : IDisposable {
+  public class InputManager : IDisposable, IEventListener {
     GameCamera HUDCam;
     KeyboardState keyboardState;
     List<Keys> keysPressed = new List<Keys>();
     TouchCollection touchCollection;
     MouseState mouseState;
-    Vector2? mouseCoordinates = null;
+    List<Vector2?> mouseCoordinates = new List<Vector2?>();
+
+    Vector2 mainCamPosition = new Vector2(0, 0);
+    Vector2 currentCoordinates = new Vector2(0, 0);
 
     int scrollValue = 0;
     int horizontalScrollValue = 0;
+
+    public InputManager() {
+      mouseCoordinates.Add(null);
+      mouseCoordinates.Add(null);
+      mouseCoordinates.Add(null);
+      EventManager.AddEventListener<ViewportEvent>(this, ViewportEvent.Values.CAMERA_MOVED);
+    }
 
     public void SetHUDCam(GameCamera camera) {
       HUDCam = camera;
     }
 
-
-
-
-
-
-
     public void Dispose() {
-
+      EventManager.RemoveEventListener(this);
     }
 
 
@@ -57,16 +61,21 @@ namespace MountainMeadowEngine.Managers {
 
       touchCollection = TouchPanel.GetState();
       foreach (TouchLocation tl in touchCollection) {
+        currentCoordinates = HUDCam.Unproject(tl.Position.X, tl.Position.Y);
+
         switch (tl.State) {
           case TouchLocationState.Pressed:
-            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_DOWN, this).SetCoordinates(HUDCam.Unproject(tl.Position.X, tl.Position.Y)));
+            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_DOWN, this)
+              .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
             break;
           case TouchLocationState.Moved:
-            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_MOVED, this).SetCoordinates(HUDCam.Unproject(tl.Position.X, tl.Position.Y)));
+            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_MOVED, this)
+              .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
             break;
           default:
           case TouchLocationState.Released:
-            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_UP, this).SetCoordinates(HUDCam.Unproject(tl.Position.X, tl.Position.Y)));
+            EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_UP, this)
+              .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
             break;
 
         }
@@ -75,47 +84,59 @@ namespace MountainMeadowEngine.Managers {
       MouseState currentMouseState = Mouse.GetState();
 
       if (currentMouseState.LeftButton == ButtonState.Pressed) {
-        Vector2 currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
-
+        currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+        
         if (mouseState.LeftButton == ButtonState.Released) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_LEFT_DOWN, this).SetCoordinates(currentCoordinates));
-        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates).X || currentCoordinates.Y != ((Vector2)mouseCoordinates).Y) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this).SetCoordinates(currentCoordinates));
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_LEFT_DOWN, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
+        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates[0]).X || currentCoordinates.Y != ((Vector2)mouseCoordinates[0]).Y) {
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
-        mouseCoordinates = currentCoordinates;
+        mouseCoordinates[0] = currentCoordinates;
       } else {
         if (mouseState.LeftButton == ButtonState.Pressed) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_LEFT_UP, this).SetCoordinates(HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y)));
+          currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_LEFT_UP, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
       }
 
       if (currentMouseState.MiddleButton == ButtonState.Pressed) {
-        Vector2 currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+        currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
 
         if (mouseState.MiddleButton == ButtonState.Released) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_MIDDLE_DOWN, this).SetCoordinates(currentCoordinates));
-        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates).X || currentCoordinates.Y != ((Vector2)mouseCoordinates).Y) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this).SetCoordinates(currentCoordinates));
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_MIDDLE_DOWN, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
+        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates[1]).X || currentCoordinates.Y != ((Vector2)mouseCoordinates[1]).Y) {
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
-        mouseCoordinates = currentCoordinates;
+        mouseCoordinates[1] = currentCoordinates;
       } else {
         if (mouseState.MiddleButton == ButtonState.Pressed) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_MIDDLE_UP, this).SetCoordinates(HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y)));
+          currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_MIDDLE_UP, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
       }
 
       if (currentMouseState.RightButton == ButtonState.Pressed) {
-        Vector2 currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+        currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
 
         if (mouseState.RightButton == ButtonState.Released) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_RIGHT_DOWN, this).SetCoordinates(currentCoordinates));
-        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates).X || currentCoordinates.Y != ((Vector2)mouseCoordinates).Y) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this).SetCoordinates(currentCoordinates));
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_RIGHT_DOWN, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
+        } else if (currentCoordinates.X != ((Vector2)mouseCoordinates[2]).X || currentCoordinates.Y != ((Vector2)mouseCoordinates[2]).Y) {
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_DRAGGED, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
-        mouseCoordinates = currentCoordinates;
+        mouseCoordinates[2] = currentCoordinates;
       } else {
         if (mouseState.RightButton == ButtonState.Pressed) {
-          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_RIGHT_UP, this).SetCoordinates(HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y)));
+          currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
+          EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_RIGHT_UP, this)
+            .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
         }
       }
 
@@ -132,6 +153,18 @@ namespace MountainMeadowEngine.Managers {
       mouseState = currentMouseState;
     }
 
+    public GameEvent OnEvent(GameEvent gameEvent) {
+      Console.WriteLine("ON EVENT IN INPUTMANAGER!");
+      Console.WriteLine(gameEvent.GetValue());
 
+      if (gameEvent is ViewportEvent && (ViewportEvent.Values)gameEvent.GetValue() == ViewportEvent.Values.CAMERA_MOVED) {
+        if (((ViewportEvent)gameEvent).GetCameraIndex() == 0) {
+          Console.WriteLine(((ViewportEvent)gameEvent).GetCameraPosition());
+          mainCamPosition = ((ViewportEvent)gameEvent).GetCameraPosition();
+        }
+      }
+
+      return gameEvent;
+    }
   }
 }

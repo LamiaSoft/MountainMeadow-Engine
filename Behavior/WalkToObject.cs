@@ -22,6 +22,7 @@ namespace MountainMeadowEngine.Behavior {
 
     public override BehaviorStatutes Run(int childIndex, ref Dictionary<string, object> metaData) {
       int dirX = 0, dirY = 0;
+      Console.WriteLine("WALK TO OBJECT...");
 
       if (gameObject.GetPosition().X == lastKnownX && gameObject.GetPosition().Y == lastKnownY) {
         return BehaviorStatutes.FAILURE;

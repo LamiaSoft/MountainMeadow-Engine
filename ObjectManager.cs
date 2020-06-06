@@ -36,8 +36,10 @@ namespace MountainMeadowEngine
     Dictionary<Tuple<int, int>, int> viewportBuckets = new Dictionary<Tuple<int, int>, int>();
 
     List<CollisionArea> _collisionAreas = new List<CollisionArea>();
-    List<Sprite> _sprites = new List<Sprite>();
-    List<AnimatedSprite> _animatedSprites = new List<AnimatedSprite>();
+
+    protected static List<Sprite> _sprites = new List<Sprite>();
+    protected static List<AnimatedSprite> _animatedSprites = new List<AnimatedSprite>();
+    protected static List<ObjectSprite> _objectSprites = new List<ObjectSprite>();
 
     List<Vector2> _collisionPoints = new List<Vector2>();
 
@@ -222,7 +224,7 @@ namespace MountainMeadowEngine
     }
 
 
-    Tuple<Vector2, Vector2> GetRenderOffset(GameObject gameObject) {
+    public static Tuple<Vector2, Vector2> GetRenderOffset(GameObject gameObject, bool allImageFrames = true) {
       Vector2 minRenderOffset = new Vector2(0, 0);
       Vector2 maxRenderOffset = new Vector2(0, 0);
 
@@ -234,6 +236,7 @@ namespace MountainMeadowEngine
 
         if (_sprites.Count > 0 || _animatedSprites.Count > 0) {
           for (int c = 0; c < _sprites.Count; c++) {
+            // TODO: CHECK FOR SPRITESHEET?
             x = gameObject.GetDrawPosition().X + _sprites[c].GetOffset().X;
             y = gameObject.GetDrawPosition().Y + _sprites[c].GetOffset().Y;
 
@@ -259,11 +262,15 @@ namespace MountainMeadowEngine
             }           }
 
           for (int c = 0; c < _animatedSprites.Count; c++) {
-            List<ObjectSprite> objectSprites = _animatedSprites[c].GetAllImageFrames();
+            if (allImageFrames) {
+              _objectSprites = _animatedSprites[c].GetAllImageFrames();
+            } else {
+              _objectSprites = _animatedSprites[c].GetImageFrames();
+            }
 
-            for (int os = 0; os < objectSprites.Count; os++) {
-              x = gameObject.GetDrawPosition().X - (objectSprites[os].pivotPoint.X * objectSprites[os].scale.X);
-              y = gameObject.GetDrawPosition().Y - (objectSprites[os].pivotPoint.Y * objectSprites[os].scale.Y);
+            for (int os = 0; os < _objectSprites.Count; os++) {
+              x = gameObject.GetDrawPosition().X - (_objectSprites[os].pivotPoint.X * _objectSprites[os].scale.X);
+              y = gameObject.GetDrawPosition().Y - (_objectSprites[os].pivotPoint.Y * _objectSprites[os].scale.Y);
 
               if (c == 0 && _sprites.Count == 0) {
                 minX = x;
@@ -273,8 +280,8 @@ namespace MountainMeadowEngine
                 minY = (y < minY) ? y : minY;
               
               }
-              maxX = (x + objectSprites[os].sourceRectangle.Width * objectSprites[os].scale.X > maxX) ? x + objectSprites[os].sourceRectangle.Width * objectSprites[os].scale.X : maxX;
-              maxY = (y + objectSprites[os].sourceRectangle.Height * objectSprites[os].scale.Y > maxY) ? y + objectSprites[os].sourceRectangle.Height * objectSprites[os].scale.Y : maxY;
+              maxX = (x + _objectSprites[os].sourceRectangle.Width * _objectSprites[os].scale.X > maxX) ? x + _objectSprites[os].sourceRectangle.Width * _objectSprites[os].scale.X : maxX;
+              maxY = (y + _objectSprites[os].sourceRectangle.Height * _objectSprites[os].scale.Y > maxY) ? y + _objectSprites[os].sourceRectangle.Height * _objectSprites[os].scale.Y : maxY;
 
               //maxX = (x + _animatedSprites[c].GetImageFrame().sourceRectangle.Width * _animatedSprites[c].GetImageFrame().scale.X > maxX) ? x + _animatedSprites[c].GetImageFrame().sourceRectangle.Width * _animatedSprites[c].GetImageFrame().scale.X : maxX;
               //maxY = (y + _animatedSprites[c].GetImageFrame().sourceRectangle.Height * _animatedSprites[c].GetImageFrame().scale.Y > maxY) ? y + _animatedSprites[c].GetImageFrame().sourceRectangle.Height * _animatedSprites[c].GetImageFrame().scale.Y : maxY;

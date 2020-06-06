@@ -25,6 +25,7 @@ namespace MountainMeadowEngine {
     public GameScene() {
       EventManager.AddEventListener<ObjectEvent>(this);
       EventManager.AddEventListener<UpdateEvent>(this, UpdateEvent.Values.POST_COLLISION);
+      EventManager.AddEventListener<UpdateEvent>(this, UpdateEvent.Values.RENDERING);
     }
 
     public void SetStatus(SceneStatuses status) {
@@ -119,6 +120,16 @@ namespace MountainMeadowEngine {
 
 
     public virtual GameEvent OnEvent(GameEvent gameEvent) {
+      if (gameEvent is UpdateEvent && (UpdateEvent.Values)gameEvent.GetValue() == UpdateEvent.Values.RENDERING) {
+        if (GetCameraById(0) != null) {
+          if (GetCameraById(0).GetPrevPosition() != GetCameraById(0).GetPosition()) {
+            EventManager.PushEvent(GameEvent.Create<ViewportEvent>(ViewportEvent.Values.CAMERA_MOVED, null)
+              .SetCameraPosition(GetCameraById(0).GetPosition()));
+          }
+        }
+      }
+      
+
       if (gameEvent is ObjectEvent && ((ObjectEvent)gameEvent).GetSceneContextType() == this.GetType()) {
         if ((ObjectEvent.Values)gameEvent.GetValue() == ObjectEvent.Values.STATUS_CHANGE) {
           if (((ObjectEvent)gameEvent).GetStatus() == GameObject.ObjectStatuses.INACTIVE) {
