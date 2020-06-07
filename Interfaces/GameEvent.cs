@@ -24,6 +24,10 @@ namespace MountainMeadowEngine.Interfaces {
       return context;
     }
 
+    public static T Create<T>(T type, object enumValue, object context, Type sceneContextType = null) {
+      return Create<T>(enumValue, context, sceneContextType);
+    }
+
     public static T Create<T>(object enumValue, object context, Type sceneContextType = null) {
       if (!eventTypes.ContainsKey(typeof(T))) {
         if (typeof(T).IsSubclassOf(typeof(GameEvent))) {

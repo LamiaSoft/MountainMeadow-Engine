@@ -62,7 +62,7 @@ namespace MountainMeadowEngine.Managers {
       touchCollection = TouchPanel.GetState();
       foreach (TouchLocation tl in touchCollection) {
         currentCoordinates = HUDCam.Unproject(tl.Position.X, tl.Position.Y);
-
+        
         switch (tl.State) {
           case TouchLocationState.Pressed:
             EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.TOUCH_DOWN, this)
@@ -85,7 +85,7 @@ namespace MountainMeadowEngine.Managers {
 
       if (currentMouseState.LeftButton == ButtonState.Pressed) {
         currentCoordinates = HUDCam.Unproject(currentMouseState.Position.X, currentMouseState.Position.Y);
-        
+
         if (mouseState.LeftButton == ButtonState.Released) {
           EventManager.PushEvent(GameEvent.Create<InputEvent>(InputEvent.Values.MOUSE_LEFT_DOWN, this)
             .SetCoordinates(currentCoordinates).SetCamCoordinates(currentCoordinates += mainCamPosition));
